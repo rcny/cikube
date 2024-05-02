@@ -10,6 +10,9 @@ on:
 
 jobs:
   build_packer_image:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-22.04
     container:
       image: quay.io/polkadot-infra/cikube-manager:latest

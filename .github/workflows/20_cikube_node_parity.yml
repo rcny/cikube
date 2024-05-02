@@ -1,0 +1,41 @@
+name: Packer / cikube-node (Parity)
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packer/cikube-node/**'
+  workflow_dispatch:
+
+jobs:
+  build_packer_image:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-22.04
+    container:
+      image: quay.io/polkadot-infra/cikube-manager:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud with workload identity
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ secrets.GCP_SA_NAME }}
+          workload_identity_provider: ${{ secrets.GCP_SA_WLIP }}
+
+      - name: Create parity.pkrvars.hcl file
+        run: |
+          echo $PKRVARS_BASE64_PARITY | base64 -d > packer/cikube-node/parity.pkrvars.hcl
+
+    - name: Build cikube-node image with kernel 6.x for Parity CI
+        run: |
+          cd packer/cikube-node
+          packer build -var-file=parity.pkrvars.hcl -only=kernel6.* .
+
+      - name: Build cikube-node image with kernel 5.x for Parity CI
+        run: |
+          cd packer/cikube-node
+          packer build -var-file=parity.pkrvars.hcl -only=kernel5.* .

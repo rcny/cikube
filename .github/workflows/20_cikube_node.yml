@@ -20,7 +20,7 @@ jobs:
       - name: Authenticate to Google Cloud with workload identity
         uses: google-github-actions/auth@v2
         with:
-          service_account: {{ secrets.GCP_SA_NAME }}
+          service_account: ${{ secrets.GCP_SA_NAME }}
           workload_identity_provider: ${{ secrets.GCP_SA_WLIP }}
 
       - name: Check gcloud CLI

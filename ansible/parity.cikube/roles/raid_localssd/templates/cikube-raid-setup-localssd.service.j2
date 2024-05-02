@@ -1,0 +1,12 @@
+[Unit]
+Description=cikube RAID setup (local SSD)
+Before=ssh.service
+After=systemd-udevd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/cikube-raid-setup-localssd --mount {{ cikube_raid_localssd_mount }}
+
+[Install]
+WantedBy=multi-user.target

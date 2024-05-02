@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+# Workaround for https://docs.k3s.io/advanced#node-labels-and-taints
+# TLDR: not possible to taint during node registration if prefix contains "kubernetes.io"
+
+require 'open3'
+
+K3S_KUBECTL = '/usr/local/bin/k3s kubectl'
+TAINT_KEY   = 'node-role.kubernetes.io/master'
+TAINT_VALUE = 'NoSchedule'
+
+def run_command(cmd)
+  stdout, stderr, status = Open3.capture3(cmd)
+  raise "Failed: #{cmd}\nError: #{stderr}" unless status.success?
+  stdout.strip
+end
+
+def cluster_ready?
+  cmd = "#{K3S_KUBECTL} cluster-info"
+  begin
+    run_command(cmd)
+    true
+  rescue
+    false
+  end
+end
+
+def node_tainted?
+  cmd = "#{K3S_KUBECTL} describe node $(hostname)"
+  output = run_command(cmd)
+  output.include?("#{TAINT_KEY}:#{TAINT_VALUE}")
+end
+
+def taint_node
+  cmd = "#{K3S_KUBECTL} taint node $(hostname) #{TAINT_KEY}=:#{TAINT_VALUE}"
+  run_command(cmd)
+end
+
+puts 'Waiting for the cluster...'
+until cluster_ready?
+  sleep 5
+end
+puts 'Cluster is ready'
+
+if node_tainted?
+  puts 'Node is already tainted'
+  exit 0
+end
+
+puts 'Tainting the server node...'
+taint_node
+puts "Server node tainted successfully with #{TAINT_KEY}:#{TAINT_VALUE}"

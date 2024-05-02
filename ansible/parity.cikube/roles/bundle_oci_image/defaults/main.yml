@@ -1,0 +1,8 @@
+---
+# defaults file for bundle_oci_image
+
+cikube_oci_images_to_bundle:
+  - "docker.io/paritytech/ci-unified:bullseye-1.75.0-2024-01-22-v20240109"
+
+# Should be the same as K3s's bundled containerd version
+cikube_special_containerd_version: "1.7.11"

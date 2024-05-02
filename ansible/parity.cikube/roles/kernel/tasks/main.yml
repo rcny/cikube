@@ -1,0 +1,129 @@
+---
+# tasks file for kernel
+
+- name: cikube | kernel | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-kernel
+
+- name: cikube | kernel | Ensure that we're on Debian 12
+  ansible.builtin.fail:
+    msg: "This role is only supported on Debian 12 (bookworm)"
+  when: not (ansible_distribution == "Debian" and ansible_distribution_version is version('12', operator='>='))
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Unfreeze APT if freezed
+  ansible.builtin.file:
+    path: /etc/apt/preferences.d/99-freeze
+    state: absent
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Gather the list of installed kernels without the one that should be kept
+  ansible.builtin.shell: >
+    dpkg --list | grep linux-image- | awk '{printf "%s_%s\n", $2, $3}' | grep -v "{{ cikube_kernel_version_to_keep }}" || echo ""
+  register: cikube_kernels_raw_output
+  check_mode: false
+  changed_when: false
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Set the variable based on the gathered and filtered dpkg output
+  # If not set in this task, defaults to empty list
+  set_fact:
+    cikube_kernels_to_remove: "{{ cikube_kernels_raw_output.stdout_lines }}"
+  when: cikube_kernels_raw_output.stdout != ""
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Print the list of kernels to remove
+  ansible.builtin.debug:
+    var: cikube_kernels_to_remove
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Remove kernels except the specified version
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+  loop: "{{ cikube_kernels_to_remove }}"
+  when: cikube_kernels_to_remove | length > 0
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Gather the package facts after the possible kernel removal
+  ansible.builtin.package_facts:
+  tags:
+    - cikube-kernel
+
+# The following set_fact tasks are basically workarounds around Debian versioning scheme
+# A simpler "dpkg --list" parsing approach could be used again as above, but here's Ansible native approach (not sure if it's better)
+- name: cikube | kernel | Extract kernel version fragment (1/2)
+  set_fact:
+    __kernel_version_string_part: "{{ cikube_kernel_version_to_keep.split('_') | last }}"
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Extract kernel version fragment (2/2)
+  # Evaluates to e.g. "5.10.123"
+  set_fact:
+    cikube_kernel_version_fragment: "{{ __kernel_version_string_part.split('-') | first }}"
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Check if specific kernel version is installed
+  # Grepping and awking the output of "dpkg --list" wasn't so bad
+  vars:
+    __matches: "{{ ansible_facts.packages | dict2items
+        | selectattr('key', 'match', '^linux-image-.*')
+        | map(attribute='value')
+        | flatten
+        | map(attribute='version')
+        | select('match', cikube_kernel_version_fragment) | list }}"
+  set_fact:
+    cikube_specified_kernel_version_installed: "{{ __matches | length > 0 }}"
+  tags:
+    - cikube-kernel
+
+- name: cikube | kernel | Setup the specified kernel version
+  block:
+    - name: cikube | kernel | Download specified kernel version
+      ansible.builtin.get_url:
+        url: "http://{{ cikube_debian_mirror }}/debian/pool/main/l/linux-signed-amd64/linux-image-{{ cikube_kernel_version_to_keep }}_amd64.deb"
+        dest: "/tmp/linux-image-{{ cikube_kernel_version_to_keep }}.deb"
+
+    - name: cikube | kernel | Install the specified kernel version
+      ansible.builtin.apt:
+        deb: "/tmp/linux-image-{{ cikube_kernel_version_to_keep }}.deb"
+
+    - name: cikube | kernel | Hold the specified kernel version
+      ansible.builtin.dpkg_selections:
+        name: "linux-image-{{ cikube_kernel_version_to_keep.split('_')[0] }}"
+        selection: hold
+
+    - name: cikube | kernel | Clean up temporary kernel package file
+      ansible.builtin.file:
+        path: "/tmp/linux-image-{{ cikube_kernel_version_to_keep }}.deb"
+        state: absent
+
+  when: cikube_specified_kernel_version_installed is false
+  tags:
+   - cikube-kernel
+
+- name: cikube | kernel | Mark some kernel-related packages as manually installed to prevent autoremoval by APT
+  ansible.builtin.command:
+    cmd: "apt-mark manual {{ item }}"
+  loop:
+    - cpio
+    - initramfs-tools
+    - initramfs-tools-core
+    - klibc-utils
+    - libklibc
+    - linux-base
+    - udev
+  changed_when: false
+  tags:
+    - cikube-kernel

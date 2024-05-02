@@ -1,0 +1,40 @@
+# Note that this should be considered as a core dependency, as we use quay.io/polkadot-infra/cikube-manager everywhere else
+
+name: OCI / cikube-manager
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'oci/cikube-manager/**'
+  workflow_dispatch:
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set datestamp
+        run: echo "datestamp=$(date +'%Y%m%d')" | tee -a $GITHUB_ENV
+
+      - name: Build OCI image using Buildah
+        id: build
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: cikube-manager
+          tags: latest v${{ env.datestamp }}
+          containerfiles: |
+            oci/cikube-manager/Dockerfile
+
+      - name: Push OCI image to registry
+        id: push
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build.outputs.image }}
+          tags: ${{ steps.build.outputs.tags }}
+          registry: quay.io/polkadot-infra
+          username: ${{ secrets.OCI_REGISTRY_USER }}
+          password: ${{ secrets.OCI_REGISTRY_PASSWORD }}

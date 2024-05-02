@@ -1,0 +1,80 @@
+---
+# tasks file for utils
+
+- name: cikube | utils | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-utils
+
+- name: cikube | utils | Ensure that we're on Debian
+  ansible.builtin.fail:
+    msg: "This role is only supported on Debian"
+  when: ansible_distribution != "Debian"
+  tags:
+    - cikube-utils
+
+- name: cikube | utils | Install administration toolset
+  ansible.builtin.apt:
+    name:
+      - apt-file
+      - bat
+      - bpfcc-tools
+      - bpftrace
+      - curl
+      - dmidecode
+      - dnsutils
+      - fio
+      - htop
+      - iotop
+      - iperf
+      - lshw
+      - lsof
+      - mdadm
+      - micro
+      - mlocate
+      - mtr
+      - ncdu
+      - netcat-openbsd
+      - nload
+      - ruby
+      - skopeo
+      - sysstat
+      - tcpdump
+      - tmate
+      - tree
+      - unzip
+      - vim
+      - wget
+    state: present
+    update_cache: yes
+  tags:
+    - cikube-utils
+
+- name: cikube | utils | Update apt-file database
+  ansible.builtin.command: apt-file update
+  changed_when: false
+  tags:
+    - cikube-utils
+
+- name: cikube | utils | Install Ruby bundler
+  community.general.gem:
+    name: bundler
+    state: present
+    user_install: no
+  tags:
+    - cikube-utils
+
+- name: cikube | utils | Disable sysstat cron jobs
+  ansible.builtin.command: truncate -s 0 /etc/cron.d/sysstat /etc/cron.daily/sysstat
+  changed_when: false
+  tags:
+    - cikube-utils
+
+- name: cikube | utils | Disable and mask sysstat oneshot service
+  ansible.builtin.systemd:
+    name: sysstat
+    enabled: no
+    masked: yes
+  tags:
+    - cikube-utils

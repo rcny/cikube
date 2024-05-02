@@ -1,0 +1,15 @@
+---
+
+- name: cikube | play | Provision a generic node image
+  hosts: default
+  become: yes
+  any_errors_fatal: yes
+  roles:
+    - parity.cikube.utils
+    - parity.cikube.nerdctl
+    - parity.cikube.experience
+    - parity.cikube.raid_localssd
+    - parity.cikube.cikube_tools
+    - parity.cikube.k3s_base
+    - parity.cikube.sysctl
+    - parity.cikube.finalize

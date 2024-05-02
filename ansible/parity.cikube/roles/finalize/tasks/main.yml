@@ -1,0 +1,31 @@
+---
+# tasks file for finalize
+
+- name: cikube | finalize | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-finalize
+
+- name: cikube | finalize | Clean APT
+  ansible.builtin.command: apt-get clean -y
+  changed_when: false
+  tags:
+    - cikube-finalize
+
+- name: cikube | finalize | Freeze APT
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/99-freeze
+    content: |
+      Package: *
+      Pin: release *
+      Pin-Priority: -1
+  tags:
+    - cikube-finalize
+
+- name: cikube | finalize | Ensure /mnt/local exists
+  ansible.builtin.file:
+    path: /mnt/local
+    state: directory
+  tags:
+    - cikube-finalize

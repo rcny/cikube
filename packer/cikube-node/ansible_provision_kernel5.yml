@@ -1,0 +1,9 @@
+---
+
+- name: cikube | play | Provision a node image with kernel 5.x
+  hosts: default
+  become: yes
+  any_errors_fatal: yes
+  roles:
+    - parity.cikube.kernel
+    - parity.cikube.finalize

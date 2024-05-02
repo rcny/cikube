@@ -1,0 +1,37 @@
+---
+# tasks file for nerdctl
+
+- name: cikube | nerdctl | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-nerdctl
+
+- name: cikube | nerdctl | Download and unpack
+  ansible.builtin.unarchive:
+    src: "https://github.com/containerd/nerdctl/releases/download/v{{ cikube_nerdctl_version }}/nerdctl-{{ cikube_nerdctl_version }}-linux-amd64.tar.gz"
+    dest: /usr/local/bin
+    include:
+      - nerdctl
+    remote_src: yes
+    owner: root
+    group: root
+    mode: 0755
+  retries: 5
+  delay: 10
+  tags:
+    - cikube-nerdctl
+
+- name: cikube | nerdctl | Ensure config directory exists
+  ansible.builtin.file:
+    path: /etc/nerdctl
+    state: directory
+  tags:
+    - cikube-nerdctl
+
+- name: cikube | nerdctl | Copy config
+  ansible.builtin.copy:
+    src: nerdctl.toml
+    dest: /etc/nerdctl/nerdctl.toml
+  tags:
+    - cikube-nerdctl

@@ -1,0 +1,113 @@
+---
+# tasks file for bundle_oci_image
+
+- name: cikube | bundle_oci_image | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - always
+    - cikube-bundle-oci-image
+
+- name: cikube | bundle_oci_image | Check special containerd version
+  ansible.builtin.command: /usr/local/bin/cikube_containerd --version
+  register: cikube_special_containerd_version_current
+  changed_when: false
+  failed_when: false
+  ignore_errors: true
+
+- name: cikube | bundle_oci_image | Ensure the special containerd binary is installed
+  block:
+  - name: cikube | bundle_oci_image | Download containerd binary
+    ansible.builtin.unarchive:
+      src: "https://github.com/containerd/containerd/releases/download/v{{ cikube_special_containerd_version }}/containerd-{{ cikube_special_containerd_version }}-linux-amd64.tar.gz"
+      dest: /tmp
+      include:
+        - bin/containerd
+      remote_src: yes
+      owner: root
+      group: root
+      mode: 0755
+    retries: 5
+    delay: 10
+
+  - name: cikube | bundle_oci_image | Move containerd binary to final location
+    ansible.builtin.command: mv -f /tmp/bin/containerd /usr/local/bin/cikube_containerd && rm -rf /tmp/bin
+    changed_when: false
+
+  - name: cikube | bundle_oci_image | Ensure special containerd config directory exists
+    ansible.builtin.file:
+      path: "/etc/cikube/containerd"
+      state: directory
+      mode: "0755"
+
+  - name: cikube | bundle_oci_image | Create special containerd's config file
+    ansible.builtin.copy:
+      dest: "/etc/cikube/containerd/config.toml"
+      content: |
+        version = 2
+
+        root = "/var/lib/rancher/k3s/agent/containerd"
+        state = "/run/k3s/containerd"
+
+        [grpc]
+          address = "/tmp/cikube_containerd.sock"
+
+        [plugins."io.containerd.internal.v1.opt"]
+          path = "/var/lib/rancher/k3s/agent/containerd"
+
+        [plugins."io.containerd.grpc.v1.cri".containerd]
+          snapshotter = "overlayfs"
+          disable_snapshot_annotations = true
+      mode: "0644"
+
+  when: cikube_special_containerd_version_current.stdout is not defined or cikube_special_containerd_version not in cikube_special_containerd_version_current.stdout
+  tags:
+    - cikube-bundle-oci-image
+
+- name: cikube | bundle_oci_image | Ensure the service directory exists
+  ansible.builtin.file:
+    path: /etc/cikube/ansible
+    state: directory
+    mode: "0755"
+  tags:
+    - cikube-bundle-oci-image
+
+# ansible.builtin.systemd doesn't support transient units
+- name: Check if cikube-containerd transient service is already running
+  ansible.builtin.shell: systemctl is-active cikube-containerd.service
+  register: __special_containerd_service_status
+  changed_when: false
+  failed_when: false
+  ignore_errors: true
+  tags:
+    - cikube-bundle-oci-image
+
+- name: Start cikube-containerd transient service
+  ansible.builtin.shell: |
+    systemd-run --unit=cikube-containerd.service \
+                --property=PIDFile=/run/cikube_containerd.pid \
+                /usr/local/bin/cikube_containerd --config /etc/cikube/containerd/config.toml
+  when: __special_containerd_service_status.rc != 0
+  register: __special_systemd_run_result
+  changed_when: "'Running as unit' in __special_systemd_run_result.stdout"
+  tags:
+    - cikube-bundle-oci-image
+
+- name: cikube | bundle_oci_image | Pull and tag images
+  ansible.builtin.shell:
+    cmd: |
+      nerdctl --address "unix:///tmp/cikube_containerd.sock" --namespace k8s.io pull --unpack=true {{ item }} && \
+      nerdctl --address "unix:///tmp/cikube_containerd.sock" --namespace k8s.io tag {{ item }} oci.cikube.localhost/{{ item | regex_replace('docker.io/', '') }} && \
+      touch "/etc/cikube/ansible/{{ item | regex_replace('[/:]', '_') }}.pulled"
+    creates: "/etc/cikube/ansible/{{ item | regex_replace('[/:]', '_') }}.pulled"
+  loop: "{{ cikube_oci_images_to_bundle }}"
+  when: __special_systemd_run_result.rc == 0
+  tags:
+    - cikube-bundle-oci-image
+
+- name: cikube | bundle_oci_image | Stop cikube-containerd transient service
+  ansible.builtin.shell: |
+    systemctl stop cikube-containerd.service
+    systemctl reset-failed cikube-containerd.service
+    systemctl daemon-reload
+  when: __special_systemd_run_result.rc == 0
+  ignore_errors: true

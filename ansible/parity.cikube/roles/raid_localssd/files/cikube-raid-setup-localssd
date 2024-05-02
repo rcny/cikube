@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+# Rewrite of the CI/CD team's create_raid.sh script in Ruby with small tweaks
+
+require 'fileutils'
+require 'optparse'
+
+options = {}
+OptionParser.new do |opts|
+  opts.on('--mount MOUNTPOINT', 'Mount point for the RAID0 array') { |v| options[:mountpoint] = v }
+end.parse!
+
+# Set default mountpoint if not provided
+options[:mountpoint] ||= '/mnt/local'
+
+# Check if the mountpoint is already mounted
+if File.exist?('/proc/mounts') && File.read('/proc/mounts').include?(options[:mountpoint])
+  puts "Found #{options[:mountpoint]}"
+  exit 0
+end
+
+# Check if /dev/md0 already exists
+if File.exist?('/dev/md0')
+  puts "Found /dev/md0. Doing nothing"
+  exit 0
+end
+
+# Get the list of local NVMe SSDs
+disk_array = `lsblk -d -o 'NAME,SERIAL' --sort SERIAL | grep "nvme.* local" | cut -d' ' -f1`.split("\n")
+
+if disk_array.empty?
+  puts "No local NVMe SSD disks found. Doing nothing"
+  exit 0
+end
+
+disk_array.map! { |disk| "/dev/#{disk}" }
+
+puts "Creating RAID0 array /dev/md0 with #{disk_array.join(', ')}"
+
+`mdadm --create /dev/md0 --level=0 --raid-devices=#{disk_array.size} #{disk_array.join(' ')}`
+`parted /dev/md0 mklabel gpt`
+`parted -a optimal /dev/md0 mkpart primary 0% 100%`
+`parted /dev/md0 set 1 raid on`
+`mkfs.ext4 -F /dev/md0`
+
+# Create mountpoint directory if it doesn't exist
+FileUtils.mkdir_p(options[:mountpoint])
+
+# Mount the RAID0 array
+`mount /dev/md0 #{options[:mountpoint]}`
+
+# Update mdadm.conf
+File.open('/etc/mdadm/mdadm.conf', 'w') do |file|
+  file.write(`mdadm --detail --scan`)
+end
+
+# Update initramfs
+`update-initramfs -u -k all`
+
+# Update /etc/fstab
+uuid = `blkid -s UUID -o value /dev/md0`.chomp
+File.open('/etc/fstab', 'a') do |file|
+  file.puts "UUID=#{uuid} #{options[:mountpoint]} ext4 discard,defaults,nofail 0 2"
+end

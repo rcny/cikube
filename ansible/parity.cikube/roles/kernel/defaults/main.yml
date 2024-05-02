@@ -1,0 +1,11 @@
+---
+# defaults file for kernel
+
+# Kernel version to keep
+cikube_kernel_version_to_keep: "5.10.0-28-cloud-amd64_5.10.209-2"
+
+# Debian mirror to download the kernel from
+cikube_debian_mirror: "ftp.de.debian.org"
+
+# Role's internal defaults
+cikube_kernels_to_remove: []

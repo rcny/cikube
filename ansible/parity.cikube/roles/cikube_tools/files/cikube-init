@@ -1,0 +1,85 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+options = {}
+OptionParser.new do |opts|
+  opts.on('--role ROLE', String, 'The role of the node') do |role|
+    options[:role] = role
+  end
+  opts.on('--opts OPTIONS', String, 'Additional node\'s K3s options') do |opts|
+    options[:opts] = opts
+  end
+  opts.on('--token TOKEN', String, 'The token value to be written into the token file') do |token|
+    options[:token] = token
+  end
+end.parse!
+
+if options[:token].nil?
+  puts "The --token flag is mandatory. Please provide a token value."
+  exit 1
+end
+
+def write_options_file(role, opts)
+  config_dir = '/etc/cikube/k3s'
+
+  case role
+  when 'server'
+    file_path = "#{config_dir}/server.opts"
+  when 'agent'
+    file_path = "#{config_dir}/agent.opts"
+  end
+
+  if File.exist?(file_path) && File.read(file_path).start_with?('CIKUBE_K3S_OPTS="--')
+    puts "K3s options for #{File.basename(file_path)} were already explicitly defined"
+    exit 1
+  end
+
+  File.open(file_path, 'w') do |file|
+    file.write("CIKUBE_K3S_OPTS=\"#{opts}\"\n")
+  end
+end
+
+def write_token_file(token)
+  token_file = '/etc/cikube/k3s/token'
+  File.open(token_file, 'w') do |file|
+    file.write(token)
+  end
+end
+
+def enable_and_start_service(service_name)
+  5.times do
+    success = system("systemctl enable --now #{service_name}")
+    if success
+      status = `systemctl is-active #{service_name}`.strip
+      return if status == 'active'
+      sleep 5
+    else
+      puts "Failed to enable and start #{service_name}"
+    end
+  end
+  puts "Failed to start #{service_name} after multiple attempts"
+  exit 1
+end
+
+
+def mask_service(service_name)
+  system("systemctl mask #{service_name}")
+end
+
+write_token_file(options[:token])
+
+case options[:role]
+when 'server'
+  write_options_file('server', options[:opts]) if options[:opts]
+  enable_and_start_service('cikube-k3s-server.service')
+  mask_service('cikube-k3s-agent.service')
+when 'agent'
+  write_options_file('agent', options[:opts]) if options[:opts]
+  enable_and_start_service('cikube-k3s-agent.service')
+  mask_service('cikube-k3s-server.service')
+else
+  puts "Invalid role specified. Please use '--role server' or '--role agent'."
+  exit 1
+end

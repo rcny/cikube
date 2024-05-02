@@ -1,0 +1,18 @@
+namespace: parity
+name: cikube
+
+version: 0.1.0
+
+dependencies:
+  ansible.posix: "*"
+  community.general: "*"
+
+readme: README.md
+
+authors:
+  - Parity Technologies <admin@parity.io>
+
+license:
+  - MIT
+
+homepage: https://github.com/paritytech/cikube

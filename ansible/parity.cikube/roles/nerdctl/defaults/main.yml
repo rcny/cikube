@@ -1,0 +1,5 @@
+---
+# defaults file for nerdctl
+
+# The version of nerdctl to install. Should be the same as the one in cikube's README.md
+cikube_nerdctl_version: "1.7.4"

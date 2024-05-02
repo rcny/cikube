@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+options = {}
+OptionParser.new do |opts|
+  opts.on("-m", "--mount MOUNT_DIR", "Specify the mount point path") do |mount_dir|
+    options[:mount_dir] = mount_dir
+  end
+end.parse!
+
+if options[:mount_dir].nil?
+  puts "Please provide the mount point path using the --mount flag"
+  exit 1
+end
+
+mount_dir = options[:mount_dir]
+
+# Kubelet data (no symlink as this directory is passed as a flag to kubelet)
+kubelet_dir = File.join(mount_dir, "k3s-kubelet")
+FileUtils.mkdir_p(kubelet_dir, mode: 0755)
+
+# containerd data root
+containerd_root_dir_old = "/var/lib/rancher/k3s/agent"
+containerd_root_dir_new = File.join(mount_dir, "k3s-containerd/root")
+FileUtils.mkdir_p(containerd_root_dir_old, mode: 0755)
+FileUtils.mkdir_p(containerd_root_dir_new, mode: 0755)
+FileUtils.ln_s(containerd_root_dir_new, containerd_root_dir_old, force: true)
+
+# containerd state
+containerd_state_dir_old = "/run/k3s"
+containerd_state_dir_new = File.join(mount_dir, "k3s-containerd/state")
+FileUtils.mkdir_p(containerd_state_dir_old, mode: 0755)
+FileUtils.mkdir_p(containerd_state_dir_new, mode: 0755)
+FileUtils.ln_s(containerd_state_dir_new, containerd_state_dir_old, force: true)
+
+# Local Path Provisioner
+pv_dir_old = "/var/lib/rancher/k3s"
+pv_dir_new = File.join(mount_dir, "k3s-storage")
+FileUtils.mkdir_p(pv_dir_old, mode: 0755)
+FileUtils.mkdir_p(pv_dir_new, mode: 0755)
+FileUtils.ln_s(pv_dir_new, pv_dir_old, force: true)

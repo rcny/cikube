@@ -1,0 +1,52 @@
+---
+# tasks file for experience
+
+- name: cikube | experience | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-experience
+
+- name: cikube | experience | Set the timezone to UTC
+  community.general.timezone:
+    name: UTC
+  tags:
+    - never
+    - cikube-experience
+
+- name: cikube | experience | Copy shell customization file
+  ansible.builtin.copy:
+    src: shell_customize.sh
+    dest: /etc/profile.d/shell_customize.sh
+    mode: '0644'
+  tags:
+    - cikube-experience
+
+- name: cikube | experience | Users' .bashrc should source the customization file
+  ansible.builtin.lineinfile:
+    path: /etc/skel/.bashrc
+    line: 'if [ -f /etc/profile.d/shell_customize.sh ]; then . /etc/profile.d/shell_customize.sh; fi'
+    insertafter: EOF
+    state: present
+
+- name: cikube | utils | Disable static motd
+  ansible.builtin.command: truncate -s 0 /etc/motd
+  changed_when: false
+  tags:
+    - cikube-experience
+
+- name: cikube | utils | Find motd scripts
+  ansible.builtin.find:
+    paths: "/etc/update-motd.d/"
+    file_type: file
+  register: __motd_scripts
+  tags:
+    - cikube-experience
+
+- name: cikuve | utils | Remove motd scripts
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ __motd_scripts.files }}"
+  tags:
+    - cikube-experience

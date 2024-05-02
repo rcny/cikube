@@ -1,0 +1,36 @@
+---
+# tasks file for raid_localssd
+
+- name: cikube | raid_localssd | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-raid-localssd
+
+- name: cikube | nerdctl | Install script
+  ansible.builtin.copy:
+    src: cikube-raid-setup-localssd
+    dest: /usr/local/bin/cikube-raid-setup-localssd
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - cikube-raid-localssd
+
+- name: cikube | raid_localssd | Template systemd unit
+  ansible.builtin.template:
+    src: cikube-raid-setup-localssd.service.j2
+    dest: /etc/systemd/system/cikube-raid-setup-localssd.service
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - cikube-raid-localssd
+
+- name: cikube | raid_localssd | Enable systemd unit
+  ansible.builtin.systemd:
+    name: cikube-raid-setup-localssd
+    enabled: yes
+    daemon_reload: yes
+  tags:
+    - cikube-raid-localssd

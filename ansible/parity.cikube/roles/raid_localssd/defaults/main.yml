@@ -1,0 +1,4 @@
+---
+# defaults file for raid_localssd
+
+cikube_raid_localssd_mount: /mnt/local

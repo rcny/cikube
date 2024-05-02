@@ -1,0 +1,12 @@
+---
+# defaults file for k3s_base
+
+cikube_k3s_base_version: "1.28.7+k3s1"
+
+cikube_k3s_agent_opts: ""
+cikube_k3s_server_opts: ""
+
+cikube_k3s_networking_cluster_cidr: "172.28.0.0/16"
+cikube_k3s_networking_service_cidr: "172.30.0.0/16"
+cikube_k3s_networking_dns: "172.30.30.30"
+cikube_k3s_networking_domain: "cikube.local"

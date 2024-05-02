@@ -1,0 +1,11 @@
+# Bundled components
+
+disable: "servicelb,traefik"
+
+# Networking
+
+cluster-cidr: "{{ cikube_k3s_networking_cluster_cidr }}"
+service-cidr: "{{ cikube_k3s_networking_service_cidr }}"
+
+cluster-dns: "{{ cikube_k3s_networking_dns }}"
+cluster-domain: "{{ cikube_k3s_networking_domain }}"

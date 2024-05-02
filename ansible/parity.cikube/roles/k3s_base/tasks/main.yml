@@ -1,0 +1,83 @@
+---
+# tasks file for k3s_base
+
+- name: cikube | k3s_base | Gather the facts if invoked partially
+  ansible.builtin.setup:
+  tags:
+    - never
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Download K3s
+  ansible.builtin.get_url:
+    url: "https://github.com/k3s-io/k3s/releases/download/v{{ cikube_k3s_base_version }}/k3s"
+    dest: /usr/local/bin/k3s
+    mode: 0755
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Ensure cikube service directory exists
+  ansible.builtin.file:
+    path: /etc/cikube/k3s
+    state: directory
+    mode: 0755
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Ensure vanilla K3s service directory exists
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: 0755
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Ensure K3s config directory exists
+  ansible.builtin.file:
+    path: /etc/rancher/k3s/config.yaml.d
+    state: directory
+    mode: 0755
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Touch the token file
+  ansible.builtin.file:
+    path: /etc/cikube/k3s/token
+    state: touch
+    mode: 0600
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Touch opts files
+  ansible.builtin.file:
+    path: "/etc/cikube/k3s/{{ item }}"
+    state: touch
+  loop:
+    - agent.opts
+    - server.opts
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Template K3s config
+  ansible.builtin.template:
+    src: server-config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    mode: 0644
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Copy K3s systemd services
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "/etc/systemd/system/{{ item.dest }}"
+    mode: 0644
+  loop:
+    - { src: 'agent.service', dest: 'cikube-k3s-agent.service' }
+    - { src: 'server.service', dest: 'cikube-k3s-server.service' }
+  tags:
+    - cikube-k3s-base
+
+- name: cikube | k3s_base | Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  tags:
+    - cikube-k3s-base

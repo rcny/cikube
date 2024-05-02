@@ -26,6 +26,8 @@ ENV SOPS_VERSION 3.8.1
 ENV TERRAFORM_VERSION 1.6.6
 # Multiple RUN instructions are used because the image is built by Buildah and Buildah squashes layers by default
 
+# Allow installing of Python packages system-wide
+RUN mkdir -p ~/.config/pip && echo -e "[global]\nbreak-system-packages = true" > ~/.config/pip/pip.conf
 
 # Ansible
 RUN pip3 install ansible==${ANSIBLE_VERSION}

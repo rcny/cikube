@@ -30,7 +30,7 @@ jobs:
         run: |
           echo $PKRVARS_BASE64_PARITY | base64 -d > packer/cikube-node/parity.pkrvars.hcl
 
-    - name: Build cikube-node image with kernel 6.x for Parity CI
+      - name: Build cikube-node image with kernel 6.x for Parity CI
         run: |
           cd packer/cikube-node
           packer build -var-file=parity.pkrvars.hcl -only=kernel6.* .

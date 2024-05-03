@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'packer/cikube-node/**'
+      - '.github/workflows/20_cikube_node_parity.yml'
   workflow_dispatch:
 
 jobs:
@@ -29,6 +30,7 @@ jobs:
       - name: Create parity.pkrvars.hcl file
         run: |
           echo $PKRVARS_BASE64_PARITY | base64 -d > packer/cikube-node/parity.pkrvars.hcl
+          cat packer/cikube-node/parity.pkrvars.hcl
 
       - name: Build cikube-node image with kernel 6.x for Parity CI
         run: |

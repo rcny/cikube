@@ -1,4 +1,5 @@
 FROM docker.io/library/alpine:3.19.1
+# Multiple RUN instructions are used because the image is built by Buildah and Buildah squashes layers by default
 
 # Base
 RUN apk add --no-cache \
@@ -15,6 +16,13 @@ RUN apk add --no-cache \
         unzip \
         wget
 
+# Allow installing of Python packages system-wide
+RUN mkdir -p ~/.config/pip && echo -e "[global]\nbreak-system-packages = true" > ~/.config/pip/pip.conf
+
+# Configure Packer to use a global directory
+ENV PACKER_CONFIG_DIR=/etc/packer
+RUN mkdir -p $PACKER_CONFIG_DIR
+
 # Versions
 ENV ANSIBLE_VERSION 9.2.0
 ENV GCLOUD_VERSION 474.0.0
@@ -24,10 +32,6 @@ ENV KUBERNETES_VERSION 1.28.6
 ENV PACKER_VERSION 1.9.5
 ENV SOPS_VERSION 3.8.1
 ENV TERRAFORM_VERSION 1.6.6
-# Multiple RUN instructions are used because the image is built by Buildah and Buildah squashes layers by default
-
-# Allow installing of Python packages system-wide
-RUN mkdir -p ~/.config/pip && echo -e "[global]\nbreak-system-packages = true" > ~/.config/pip/pip.conf
 
 # Ansible
 RUN pip3 install ansible==${ANSIBLE_VERSION}

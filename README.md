@@ -82,7 +82,7 @@ The control plane node should be a persistent machine because it's used to run t
 
 #### Observability
 
-Clusters have Grafana Agent installed, operated in [Flow mode](https://grafana.com/docs/agent/latest/flow/). Grafana Agent collects both logs and metrics from cluster entities and nodes' `systemd` service units. Logs are collected from every available pod in a cluster and every available `systemd` unit on a node, logs are then sent to a Loki-compatible ingest API endpoint. Metrics are collected from any cluster `ServiceMonitor` or `PodMonitor` CRD and are sent to an external Prometheus's `remote_write` compatible API. Note that this is optional as you can run `cikube` without any observability-related components if needed.
+Clusters have Grafana Alloy installed, which collects both logs and metrics from cluster entities and nodes' `systemd` service units. Logs are collected from every available pod in a cluster and every available `systemd` unit on a node, logs are then sent to a Loki-compatible ingest API endpoint. Metrics are collected from any cluster `ServiceMonitor` or `PodMonitor` CRD and are sent to an external Prometheus's `remote_write` compatible API. Note that this is optional as you can run `cikube` without any observability-related components if needed.
 
 `cikube` clusters don't have any persistent logs or metrics storage.
 

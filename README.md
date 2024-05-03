@@ -21,7 +21,7 @@ The following lists describe the components that are available in each correspon
 |---|---|
 | Actions Runner Controller | 0.9.1 |
 | GitHub Actions Runner | 2.316.1 |
-| Grafana Agent | 0.40.4 |
+| Grafana Alloy | 1.0.0 |
 | K3s | 1.28.7+k3s1 |
 
 #### Important node components
@@ -78,7 +78,7 @@ This model is regarded as the most cost-effective strategy to run e.g. Polkadot 
 
 #### Topology
 
-The control plane node should be a persistent machine because it's used to run the control plane components and other bundled controllers, along with additional supporting solutions. Worker nodes are used to run CI workloads and can be ephemeral. The control plane node doesn't execute any CI workloads. Additionally, observability-related DaemonSets, such as Grafana Agent, are deployed on both control plane and worker nodes.
+The control plane node should be a persistent machine because it's used to run the control plane components and other bundled controllers, along with additional supporting solutions. Worker nodes are used to run CI workloads and can be ephemeral. The control plane node doesn't execute any CI workloads. Additionally, observability-related DaemonSets, such as Grafana Alloy, are deployed on both control plane and worker nodes.
 
 #### Observability
 

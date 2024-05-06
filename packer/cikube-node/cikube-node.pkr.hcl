@@ -26,6 +26,7 @@ build {
   source "source.googlecompute.cikube" {
     source_image = "debian-12-bookworm-v20240213"
     image_name   = local.image_name_kernel6
+    source_image_family = "cikube-node-kernel6"
   }
 
   provisioner "ansible" {
@@ -41,6 +42,7 @@ build {
   source "source.googlecompute.cikube" {
     source_image = local.image_name_kernel6
     image_name   = local.image_name_kernel5
+    source_image_family = "cikube-node-kernel5"
   }
 
   provisioner "ansible" {

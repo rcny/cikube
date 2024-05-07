@@ -8,3 +8,13 @@ output "token" {
   value     = random_password.token.result
   sensitive = true
 }
+
+output "server" {
+  description = "The cikube server submodule"
+  value = module.server
+}
+
+output "agents" {
+  description = "The cikube agent submodules"
+  value = module.agent[*]
+}

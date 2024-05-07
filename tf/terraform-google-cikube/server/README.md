@@ -1,3 +1,3 @@
-# cikube server Terraform sub-module for Google Cloud
+# cikube server Terraform submodule for Google Cloud
 
-This is the Terraform sub-module that creates a persistent server machine for the `cikube` cluster.
+This is the Terraform submodule that creates a persistent server machine for the `cikube` cluster.

@@ -62,6 +62,11 @@ variable "server_ip" {
   type        = string
 }
 
+variable "server_bucket_name" {
+  description = "Name of the server bucket"
+  type        = string
+}
+
 variable "opts" {
   description = "Additional options for the cikube-init"
   type        = string

@@ -1,6 +1,6 @@
-resource "null_resource" "wait_for_server" {
+resource "null_resource" "wait_for_kubeconfig" {
   provisioner "local-exec" {
-    command = "until gcloud compute ssh ${var.server_ip} --region ${var.region} --network ${var.network} --command 'k3s kubectl get nodes'; do sleep 2; done"
+    command = "until gsutil cat ${var.server_bucket_name}/root_kubeconfig.yaml; do sleep 5; done"
   }
 }
 
@@ -99,7 +99,7 @@ resource "google_compute_region_instance_group_manager" "this" {
     }
   }
 
-  depends_on = [null_resource.wait_for_server]
+  depends_on = [null_resource.wait_for_kubeconfig]
 }
 
 resource "google_compute_region_autoscaler" "this" {

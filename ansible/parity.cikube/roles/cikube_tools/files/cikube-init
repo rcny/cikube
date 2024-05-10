@@ -8,11 +8,17 @@ OptionParser.new do |opts|
   opts.on('--role ROLE', String, 'The role of the node') do |role|
     options[:role] = role
   end
-  opts.on('--opts OPTIONS', String, 'Additional node\'s K3s options') do |opts|
-    options[:opts] = opts
+  opts.on("--opts OPTIONS", String, "Additional node's K3s options") do |opts_param|
+    options[:opts] = opts_param
   end
   opts.on('--token TOKEN', String, 'The token value to be written into the token file') do |token|
     options[:token] = token
+  end
+  opts.on('--provider PROVIDER', String, 'The target cloud provider') do |provider|
+    options[:provider] = provider
+  end
+  opts.on('--config-destination BUCKET', String, "The object storage entity name for storing admin's kubeconfig") do |bucket|
+    options[:bucket] = bucket
   end
 end.parse!
 
@@ -21,15 +27,24 @@ if options[:token].nil?
   exit 1
 end
 
+if options[:provider].nil?
+  puts "The --provider flag is mandatory. Please specify the cloud provider."
+  exit 1
+end
+
+if options[:role] == 'server' && options[:provider] == 'google' && options[:bucket].nil?
+  puts "The --config-destination flag is required for server role with Google provider. Please provide a GCS bucket name."
+  exit 1
+end
+
 def write_options_file(role, opts)
   config_dir = '/etc/cikube/k3s'
-
-  case role
-  when 'server'
-    file_path = "#{config_dir}/server.opts"
-  when 'agent'
-    file_path = "#{config_dir}/agent.opts"
-  end
+  file_path = case role
+              when 'server'
+                "#{config_dir}/server.opts"
+              when 'agent'
+                "#{config_dir}/agent.opts"
+              end
 
   if File.exist?(file_path) && File.read(file_path).start_with?('CIKUBE_K3S_OPTS="--')
     puts "K3s options for #{File.basename(file_path)} were already explicitly defined"
@@ -63,9 +78,28 @@ def enable_and_start_service(service_name)
   exit 1
 end
 
-
 def mask_service(service_name)
   system("systemctl mask #{service_name}")
+end
+
+def wait_for_k3s_ready
+  30.times do
+    success = system("k3s kubectl get nodes")
+    return if success
+    sleep 5
+  end
+  puts "Timed out waiting for K3s to be ready"
+  exit 1
+end
+
+def copy_kubeconfig_to_gcs(bucket)
+  kubeconfig_path = '/etc/rancher/k3s/k3s.yaml'
+  if File.exist?(kubeconfig_path)
+    system("gsutil cp #{kubeconfig_path} gs://#{bucket}/root_kubeconfig.yaml")
+  else
+    puts "Kubeconfig file not found at #{kubeconfig_path}"
+    exit 1
+  end
 end
 
 write_token_file(options[:token])
@@ -75,10 +109,14 @@ when 'server'
   write_options_file('server', options[:opts]) if options[:opts]
   enable_and_start_service('cikube-k3s-server.service')
   mask_service('cikube-k3s-agent.service')
+  wait_for_k3s_ready
+  copy_kubeconfig_to_gcs(options[:bucket]) if options[:provider] == 'google'
+  puts "Server node initialized"
 when 'agent'
   write_options_file('agent', options[:opts]) if options[:opts]
   enable_and_start_service('cikube-k3s-agent.service')
   mask_service('cikube-k3s-server.service')
+  puts "Agent node initialized"
 else
   puts "Invalid role specified. Please use '--role server' or '--role agent'."
   exit 1

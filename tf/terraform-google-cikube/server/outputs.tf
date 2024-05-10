@@ -11,6 +11,7 @@ output "instance" {
 output "kubeconfig" {
   description = "The admin kubeconfig for the cluster"
   value       = data.google_storage_bucket_object_content.kubeconfig.content
+  sensitive   = true
 }
 
 output "bucket" {

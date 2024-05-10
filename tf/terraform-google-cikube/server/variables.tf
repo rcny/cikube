@@ -41,6 +41,12 @@ variable "zone" {
   type        = string
 }
 
+variable "external_ip_enabled" {
+  description = "Whether to use external IP address for the server instance"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "List of custom tags to apply to the server instance"
   type        = list(string)

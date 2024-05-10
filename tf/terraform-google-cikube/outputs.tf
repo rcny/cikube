@@ -15,6 +15,6 @@ output "server" {
 }
 
 output "agents" {
-  description = "The cikube agent submodules"
+  description = "The cikube agent pool submodules"
   value = module.agent[*]
 }

@@ -10,6 +10,7 @@ module "server" {
   image        = var.server_image
   machine_type = var.server_machine_type
   network      = var.network
+  external_ip_enabled = var.server_external_ip_enabled
   region       = var.region
   subnetwork   = var.subnetwork
   tags         = var.server_tags
@@ -28,6 +29,7 @@ module "agent" {
   image                  = each.value.image
   machine_type           = each.value.machine_type
   network                = var.network
+  external_ip_enabled    = each.external_ip_enabled
   opts                   = each.value.opts
   region                 = var.region
   scaler_cooldown_period = each.value.scaler_cooldown_period

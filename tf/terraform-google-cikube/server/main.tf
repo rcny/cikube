@@ -16,12 +16,17 @@ resource "google_compute_instance_template" "this" {
   network_interface {
     network = var.network
     subnetwork = var.subnetwork
+
+    dynamic "access_config" {
+      for_each = var.external_ip_enabled ? [1] : []
+      content {}
+    }
   }
 
   metadata = {
     startup-script = <<-EOF
       if [ ! -f /var/run/cikube_bootstrapped ]; then
-        /usr/local/bin/cikube-init --role server --token ${var.token}
+        /usr/local/bin/cikube-init --role server --token ${var.token} --provider google --config-destination ${bucket}
         touch /var/run/cikube_bootstrapped
       fi
     EOF

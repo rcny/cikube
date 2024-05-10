@@ -78,6 +78,12 @@ variable "subnetwork" {
   default     = null
 }
 
+variable "external_ip_enabled" {
+  description = "Whether to use external IP address for the agent instances"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "List of custom tags to apply to the agent instances"
   type        = list(string)

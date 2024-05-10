@@ -37,24 +37,10 @@ variable "server_machine_type" {
   type        = string
 }
 
-variable "boot_disk_size" {
-  description = "Size of the boot disk for agent machines"
-  type        = number
-}
-
-variable "boot_disk_type" {
-  description = "Type of the boot disk for agent machines"
-  type        = string
-}
-
-variable "ssd_count" {
-  description = "Number of local SSD disks to attach to each agent machine"
-  type        = number
-}
-
-variable "scaler_cooldown_period" {
-  description = "Cooldown period for the MIG's autoscaler in seconds"
-  type        = number
+variable "server_external_ip_enabled" {
+  description = "Whether to use external IP address for the server machine"
+  type        = bool
+  default     = true
 }
 
 variable "region" {
@@ -69,6 +55,7 @@ variable "agent_pools" {
     boot_disk_type         = string
     image                  = string
     machine_type           = string
+    external_ip_enabled    = bool
     opts                   = string
     scaler_cooldown_period = number
     scaler_cpu_utilization = number

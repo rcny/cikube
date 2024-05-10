@@ -32,6 +32,11 @@ resource "google_compute_instance_template" "this" {
   network_interface {
     network    = var.network
     subnetwork = var.subnetwork
+
+    dynamic "access_config" {
+      for_each = var.external_ip_enabled ? [1] : []
+      content {}
+    }
   }
 
   scheduling {
@@ -59,6 +64,7 @@ resource "google_compute_instance_template" "this" {
         /usr/local/bin/cikube-init \
           --role agent \
           --token ${var.token} \
+          --provider google \
           --opts "--server https://${var.server_ip}:6443 --kubelet-arg 'root-dir=/mnt/local/kubelet' ${var.opts}"
         touch /var/run/cikube_bootstrapped
       fi

@@ -68,12 +68,6 @@ resource "google_storage_bucket_iam_member" "this" {
   member = "serviceAccount:${google_service_account.this.email}"
 }
 
-resource "null_resource" "wait_for_kubeconfig" {
-  provisioner "local-exec" {
-    command = "until gsutil cat ${google_storage_bucket.this.name}/root_kubeconfig.yaml; do sleep 5; done"
-  }
-}
-
 data "google_storage_bucket_object_content" "kubeconfig" {
   name       = "root_kubeconfig.yaml"
   bucket     = google_storage_bucket.this.name

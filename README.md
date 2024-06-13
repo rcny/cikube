@@ -90,6 +90,10 @@ Clusters have Grafana Alloy installed, which collects both logs and metrics from
 
 These are special purpose clusters. They are not intended to be used for anything other than running CI workloads. That's why e.g. Argo is not installed there, as it only adds complexity. All Kubernetes resources with appropriate Helm releases are managed either as via Terraform declarations or via bundled [Helm Controller](https://github.com/k3s-io/helm-controller)'s CRDs.
 
+#### Attribution
+
+This repository is based on https://github.com/paritytech/cikube, which is authored by Parity Technologies and licensed under the Apache License 2.0.
+
 #### License
 
 This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for more information.

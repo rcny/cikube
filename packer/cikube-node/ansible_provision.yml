@@ -5,11 +5,11 @@
   become: yes
   any_errors_fatal: yes
   roles:
-    - parity.cikube.utils
-    - parity.cikube.nerdctl
-    - parity.cikube.experience
-    - parity.cikube.raid_localssd
-    - parity.cikube.cikube_tools
-    - parity.cikube.k3s_base
-    - parity.cikube.sysctl
-    - parity.cikube.finalize
+    - dotinfra.cikube.utils
+    - dotinfra.cikube.nerdctl
+    - dotinfra.cikube.experience
+    - dotinfra.cikube.raid_localssd
+    - dotinfra.cikube.cikube_tools
+    - dotinfra.cikube.k3s_base
+    - dotinfra.cikube.sysctl
+    - dotinfra.cikube.finalize

@@ -1,5 +1,5 @@
 ---
 
 collections:
-  - source: ../../ansible/parity.cikube
+  - source: ../../ansible/dotinfra.cikube
     type: dir

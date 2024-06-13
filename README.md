@@ -92,7 +92,7 @@ These are special purpose clusters. They are not intended to be used for anythin
 
 #### Attribution
 
-This repository is based on https://github.com/paritytech/cikube, which is authored by Parity Technologies and licensed under the Apache License 2.0.
+This repository is based on [paritytech/cikube](https://github.com/paritytech/cikube), which is authored by Parity Technologies and licensed under the Apache License 2.0.
 
 #### License
 

@@ -1,4 +1,4 @@
-# Note that this should be considered as a core dependency, as we use quay.io/polkadot-infra/cikube-manager everywhere else
+# Note that this should be considered as a core dependency, as we use quay.io/dotinfra-xyz/cikube-manager everywhere else
 
 name: OCI / cikube-manager
 

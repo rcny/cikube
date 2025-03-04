@@ -5,11 +5,11 @@
   become: yes
   any_errors_fatal: yes
   roles:
-    - dotinfra.cikube.utils
-    - dotinfra.cikube.nerdctl
-    - dotinfra.cikube.experience
-    - dotinfra.cikube.raid_localssd
-    - dotinfra.cikube.cikube_tools
-    - dotinfra.cikube.k3s_base
-    - dotinfra.cikube.sysctl
-    - dotinfra.cikube.finalize
+    - rcny.cikube.utils
+    - rcny.cikube.nerdctl
+    - rcny.cikube.experience
+    - rcny.cikube.raid_localssd
+    - rcny.cikube.cikube_tools
+    - rcny.cikube.k3s_base
+    - rcny.cikube.sysctl
+    - rcny.cikube.finalize

@@ -7,7 +7,7 @@
 * A generic image based on Debian 12 with kernel 6.x is built first
 * The generic image is then used as a base to create a second image with kernel 5.x
 
-The Ansible provisioner handles installing packages, configuring the system, and laying down K3s and `cikube` tools. The playbooks for the provisioner use roles from the `dotinfra.cikube` collection only, which resides in the `ansible/dotinfra.cikube` directory of this project.
+The Ansible provisioner handles installing packages, configuring the system, and laying down K3s and `cikube` tools. The playbooks for the provisioner use roles from the `rcny.cikube` collection only, which resides in the `ansible/rcny.cikube` directory of this project.
 
 ### Notes
 

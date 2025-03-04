@@ -1,4 +1,4 @@
-namespace: dotinfra
+namespace: rcny
 name: cikube
 
 version: 0.1.0
@@ -10,9 +10,9 @@ dependencies:
 readme: README.md
 
 authors:
-  - dotinfra.xyz <github@dotinfra.xyz>
+  - Vladimir Istyufeev <me@rcn.me>
 
 license:
   - Apache-2.0
 
-homepage: https://github.com/dotinfra-xyz/cikube
+homepage: https://github.com/rcny/cikube

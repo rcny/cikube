@@ -1,4 +1,4 @@
-# Note that this should be considered as a core dependency, as we use quay.io/dotinfra-xyz/cikube-manager everywhere else
+# Note that this should be considered as a core dependency, as we use quay.io/rcny/cikube-manager everywhere else
 
 name: OCI / cikube-manager
 
@@ -35,6 +35,6 @@ jobs:
         with:
           image: ${{ steps.build.outputs.image }}
           tags: ${{ steps.build.outputs.tags }}
-          registry: quay.io/dotinfra-xyz
+          registry: quay.io/rcny
           username: ${{ secrets.OCI_REGISTRY_USER }}
           password: ${{ secrets.OCI_REGISTRY_PASSWORD }}

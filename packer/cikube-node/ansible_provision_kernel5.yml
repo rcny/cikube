@@ -5,5 +5,5 @@
   become: yes
   any_errors_fatal: yes
   roles:
-    - dotinfra.cikube.kernel
-    - dotinfra.cikube.finalize
+    - rcny.cikube.kernel
+    - rcny.cikube.finalize

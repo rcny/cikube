@@ -1,5 +1,5 @@
 ---
 
 collections:
-  - source: ../../ansible/dotinfra.cikube
+  - source: ../../ansible/rcny.cikube
     type: dir
